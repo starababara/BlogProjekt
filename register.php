@@ -6,6 +6,7 @@
         $nickname = $_POST['name'];
         $paswd1= $_POST['password'];
         $paswd2= $_POST['password2'];
+        $email = $_POST["email"];
 
         require_once("config/db.php");
         $sql="SELECT id FROM users WHERE user=:name";
@@ -13,6 +14,7 @@
         $query->bindValue(':name', $nickname, PDO::PARAM_STR);
         $query->execute();
         $query->fetch();
+        
         
         $NameExist=$query->rowCount();
         if($NameExist>0)
@@ -27,11 +29,31 @@
             $_SESSION['badPass']='Ten nick jest już zarezerwowany';
         }
 
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            
+            $validation=false;
+            $_SESSION['emailErr'] = "To nie jest Email";
+        }
+
+        $sql="SELECT id FROM users WHERE email=:email";
+        $query = $db->prepare($sql);
+        $query->bindValue(':email', $email, PDO::PARAM_STR);
+        $query->execute();
+        $query->fetch();
+        
+        
+        $NameExist=$query->rowCount();
+        if($NameExist>0)
+        {
+            $validation = false;
+            $_SESSION['emailErr']='Istnieje już konto z tym adresem e-mail';
+        }
+
         if($validation)
         {
             $paswdHash = password_hash($paswd1, PASSWORD_DEFAULT);
 
-            $sql= "INSERT INTO users VALUES(NULL, '$nickname', '$paswdHash')";
+            $sql= "INSERT INTO users VALUES(NULL, '$nickname', '$paswdHash', '$email')";
             $query = $db->prepare($sql);
             $query->execute(); 
 
@@ -56,6 +78,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/registerStyle.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
@@ -76,6 +99,17 @@
                                 {
                                     echo "<div class='error'>".$_SESSION['NameErr']."</div>";
                                     unset($_SESSION['NameErr']);
+                                }
+                            ?>
+                        </div>
+                        <div class="form-group">
+                            <label for="username">email</label>
+                            <input id="email" type="text" name="email"/>
+                            <?php
+                                if(isset($_SESSION['emailErr']))
+                                {
+                                    echo "<div class='error'>".$_SESSION['emailErr']."</div>";
+                                    unset($_SESSION['emailErr']);
                                 }
                             ?>
                         </div>

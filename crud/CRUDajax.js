@@ -95,7 +95,8 @@ function createTODO(user)
         },
         success:function(out)
         {
-            place.innerHTML=out;
+            place.remove();
+            table.innerHTML+=out;
             table.innerHTML+=button;
         }
     })

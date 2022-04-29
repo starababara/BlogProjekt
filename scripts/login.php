@@ -10,17 +10,22 @@
         $query->bindValue(':login', $login, PDO::PARAM_STR);
         $query->execute();
         $user= $query->fetch();
-        if($pass==$user['pass'])
+
+        $NameExist=$query->rowCount();
+        if($NameExist>0)
         {
-            $_SESSION['loged'] = $user['id'];
-            unset( $_SESSION['badPass']);
-            header("Location:../login.php");
-        }
-        else
-        {
-            $_SESSION['badPass'] = true;
-            header("Location:../login.php");
-            exit();
+            if(password_verify($pass, $user['pass']))
+            {
+                $_SESSION['loged'] = $user['id'];
+                unset( $_SESSION['badPass']);
+                header("Location:../login.php");
+            }
+            else
+            {
+                $_SESSION['badPass'] = true;
+                header("Location:../login.php");
+                exit();
+            }
         }
     }
     else

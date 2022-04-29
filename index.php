@@ -22,7 +22,7 @@
         $usrId=$_SESSION['loged'];
         $sql="SELECT * FROM todo WHERE userID=:userId";
         $query=$db->prepare($sql);
-        $query->bindValue($usrId , PDO::PARAM_INT);
+        $query->bindValue(':userId' ,$usrId , PDO::PARAM_INT);
         $query->execute();
         $allcount = $query->rowCount();
 

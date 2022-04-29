@@ -6,9 +6,46 @@
         $nickname = $_POST['name'];
         $paswd1= $_POST['password'];
         $paswd2= $_POST['password2'];
-        echo $paswd1.'</br>';
-        echo $paswd2.'</br>';
-        echo $nickname;
+
+        require_once("config/db.php");
+        $sql="SELECT id FROM users WHERE user=:name";
+        $query = $db->prepare($sql);
+        $query->bindValue(':name', $nickname, PDO::PARAM_STR);
+        $query->execute();
+        $query->fetch();
+        
+        $NameExist=$query->rowCount();
+        if($NameExist>0)
+        {
+            $validation = false;
+            $_SESSION['NameErr']='Ten nick jest już zarezerwowany';
+        }
+
+        if($paswd1!=$paswd2)
+        {
+            $validation = false;
+            $_SESSION['badPass']='Ten nick jest już zarezerwowany';
+        }
+
+        if($validation)
+        {
+            $paswdHash = password_hash($paswd1, PASSWORD_DEFAULT);
+
+            $sql= "INSERT INTO users VALUES(NULL, '$nickname', '$paswdHash')";
+            $query = $db->prepare($sql);
+            $query->execute(); 
+
+            $sql="SELECT id FROM users WHERE user=:name";
+            $query = $db->prepare($sql);
+            $query->bindValue(':name', $nickname, PDO::PARAM_STR);
+            $query->execute();
+            $result=$query->fetch();
+            $_SESSION['loged'] = $result['id'];
+
+            echo $_SESSION['loged'];
+            header("Location: index.php");
+            exit();
+        }
     }
 
 ?>
@@ -46,11 +83,6 @@
                             <label for="password">hasło</label>
                             <input id="password" type="password" name="password" />
                             <?php
-                                if(isset($_SESSION['badPass']))
-                                {
-                                    echo "nie poprawne dane logowania";
-                                    unset($_SESSION['badPass']);
-                                }
                             ?>
                         </div>
                         <div class="form-group">
@@ -59,7 +91,7 @@
                             <?php
                                 if(isset($_SESSION['badPass']))
                                 {
-                                    echo "nie poprawne dane logowania";
+                                    echo "hasła nie są takie same";
                                     unset($_SESSION['badPass']);
                                 }
                             ?>
